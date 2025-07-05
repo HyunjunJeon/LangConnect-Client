@@ -150,7 +150,7 @@ export function UploadDocumentModal({
     } catch (error: any) {
       console.error("Failed to upload documents:", error)
       toast.error(t('documents.messages.uploadError'), {
-        description: error.message || "An error occurred while uploading documents",
+        description: error.message || t('documents.messages.uploadError'),
       })
     } finally {
       setIsLoading(false)

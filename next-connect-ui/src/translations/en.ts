@@ -96,6 +96,7 @@ export const en = {
     messages: {
       uploadSuccess: 'Document uploaded successfully',
       uploadError: 'Failed to upload document',
+      uploadRequireFiles: 'Please select files to upload',
       deleteSuccess: 'Document deleted successfully',
       deleteError: 'Failed to delete document',
       fetchError: 'Failed to fetch documents'
@@ -122,7 +123,11 @@ export const en = {
     alphaValue: 'Alpha value (0-1)',
     noResults: 'No results found',
     results: 'Search Results',
-    relevanceScore: 'Relevance: {{score}}'
+    relevanceScore: 'Relevance: {{score}}',
+    enterSearchQuery: 'Please enter search query',
+    selectCollectionFirst: 'Please select a collection',
+    invalidJson: 'Invalid JSON format',
+    foundResults: 'Found {{count}} results'
   },
   apiTester: {
     title: 'API Tester',
@@ -156,7 +161,14 @@ export const en = {
     alreadyHaveAccount: 'Already have an account?',
     dontHaveAccount: "Don't have an account?",
     signInError: 'Failed to sign in',
+    signInProcessError: 'An error occurred during sign in',
+    signInProcessing: 'Processing...',
+    signInSuccess: 'Sign in successful',
+    signInInvalidCredentials: 'Invalid email or password',
     signUpError: 'Failed to sign up',
+    signUpSuccess: 'Sign up successful',
+    signUpEmailExists: 'This email is already registered',
+    unknownError: 'An unknown error occurred',
     logoutSuccess: 'Logged out successfully',
     emailVerification: {
       title: 'Email Verification Required',
@@ -166,8 +178,6 @@ export const en = {
       emailNotReceived: "Didn't receive the email? Please check your spam folder.",
       goToLogin: 'Go to Login'
     },
-    signUpSuccess: 'Sign up successful!',
-    emailAlreadyExists: 'This email is already registered',
     signUpProcessing: 'Processing...',
     signUpButton: 'Sign Up',
     signInDescription: 'Enter your information to sign in',
