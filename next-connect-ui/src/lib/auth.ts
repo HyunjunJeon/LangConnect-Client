@@ -2,6 +2,51 @@ import { NextAuthOptions } from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
 import { serverFetchAPI } from "./api"
 
+const API_URL = process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080"
+
+// Define the Token interface
+interface Token {
+  refreshToken: string;
+  accessToken?: string;
+  accessTokenExpires?: number;
+  error?: string;
+}
+
+// Helper function to refresh access token
+export async function refreshAccessToken(token: Token) {
+  try {
+    const response = await fetch(`${API_URL}/auth/refresh`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        refresh_token: token.refreshToken
+      })
+    })
+    
+    const refreshed = await response.json()
+    
+    if (!response.ok) {
+      throw new Error(refreshed.detail || 'Failed to refresh token')
+    }
+    
+    return {
+      ...token,
+      accessToken: refreshed.access_token,
+      refreshToken: refreshed.refresh_token,
+      accessTokenExpires: Date.now() + (60 * 60 * 1000), // 1 hour from now
+    }
+  } catch (error) {
+    console.error('Error refreshing access token', error)
+    
+    return {
+      ...token,
+      error: "RefreshAccessTokenError",
+    }
+  }
+}
+
 export const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({
@@ -29,8 +74,9 @@ export const authOptions: NextAuthOptions = {
           const user = {
             id: response.user_id,
             email: response.email,
-            name: response.name,
+            name: response.name || response.email,
             accessToken: response.access_token,
+            refreshToken: response.refresh_token,
           }
           
           return user as any
@@ -50,22 +96,37 @@ export const authOptions: NextAuthOptions = {
   ],
   callbacks: {
     async jwt({ token, user }) {
-      // user is only available on sign in
+      // Initial sign in
       if (user) {
-        token.accessToken = user.accessToken
-        token.id = user.id
-        token.email = user.email
-        token.name = user.name
+        return {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          accessToken: user.accessToken,
+          refreshToken: user.refreshToken,
+          accessTokenExpires: Date.now() + (60 * 60 * 1000), // 1 hour from now
+        }
       }
       
-      return token
+      // Return previous token if the access token has not expired yet
+      if (Date.now() < (token.accessTokenExpires as number)) {
+        return token
+      }
+      
+      // Access token has expired, try to update it
+      return refreshAccessToken(token)
     },
     async session({ session, token }) {
       if (token && session.user) {
         session.user.id = token.id as string
         session.user.email = token.email as string
         session.user.name = token.name as string
-        session.access_token = token.accessToken as string
+        session.user.accessToken = token.accessToken as string
+        // Don't expose refresh token to client
+        // Check for token refresh errors
+        if (token.error) {
+          session.error = token.error as string
+        }
       }
       
       return session
@@ -82,7 +143,7 @@ export const authOptions: NextAuthOptions = {
   },
   events: {
     async signOut(message) {
-      // 로그아웃 시 추가 정리 작업
+      // TODO: 로그아웃 시 추가 정리 작업
     }
   },
   secret: process.env.NEXTAUTH_SECRET,

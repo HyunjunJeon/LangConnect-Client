@@ -58,8 +58,9 @@ LangConnect Client는 pgvector 확장이 포함된 PostgreSQL로 구동되는 �
 - **하이브리드 검색**: 구성 가능한 가중치를 통한 통합 검색
 
 ### 🔐 **인증**
-- Supabase JWT 인증
+- 자동 토큰 갱신을 포함한 Supabase JWT 인증
 - 역할 기반 액세스 제어
+- NextAuth.js를 통한 안전한 리프레시 토큰 관리
 
 ### 🤖 **MCP 통합**
 - AI 어시스턴트(Claude, Cursor)를 위한 9개 이상의 도구
@@ -72,6 +73,30 @@ LangConnect Client는 pgvector 확장이 포함된 PostgreSQL로 구동되는 �
 ## 🏗️ 아키텍처
 
 ![Overall Architecture](./assets/structure.png)
+
+### 인증 플로우
+
+인증 시스템은 안전한 토큰 갱신 메커니즘을 구현합니다:
+
+```
+┌─────────────┐     ┌──────────────┐     ┌───────────┐
+│   Browser   │────▶│   NextAuth   │────▶│ Supabase  │
+│             │◀────│   (JWT)      │◀────│   Auth    │
+└─────────────┘     └──────────────┘     └───────────┘
+     │                      │
+     │ httpOnly 쿠키       │ 리프레시 토큰
+     │ (암호화된 JWT)      │ JWT에 저장됨
+     │                      │
+     ▼                      ▼
+ 클라이언트에는          액세스 토큰 만료 시
+ accessToken만 노출      자동 갱신
+```
+
+**주요 보안 기능:**
+- 리프레시 토큰은 클라이언트에 절대 노출되지 않음
+- 액세스 토큰 만료 시 자동 토큰 갱신
+- 보안 강화를 위한 갱신 시 토큰 로테이션
+- httpOnly 쿠키에 암호화된 JWT 저장
 
 ## 🚀 시작하기
 

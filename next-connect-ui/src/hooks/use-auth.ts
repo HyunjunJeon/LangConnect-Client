@@ -40,6 +40,14 @@ export const useAuth = () => {
   const [loginLoading, setLoginLoading] = useState(false);
   const [logoutLoading, setLogoutLoading] = useState(false);
 
+  // Check for refresh token errors
+  useEffect(() => {
+    if (session?.error === "RefreshAccessTokenError") {
+      // Token refresh failed, sign out the user
+      signOut({ callbackUrl: '/signin' });
+    }
+  }, [session?.error]);
+
   // 회원가입 함수
   const register = async (params: RegisterParams): Promise<RegisterResponse> => {
     setRegisterLoading(true);

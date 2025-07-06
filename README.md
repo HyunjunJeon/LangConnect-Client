@@ -59,8 +59,9 @@ This project was inspired by [langchain-ai/langconnect](https://github.com/langc
 - **Hybrid**: Combined search with configurable weights
 
 ### 🔐 **Authentication**
-- Supabase JWT authentication
+- Supabase JWT authentication with automatic token refresh
 - Role-based access control
+- Secure refresh token management with NextAuth.js
 
 ### 🤖 **MCP Integration**
 - 9+ tools for AI assistants (Claude, Cursor)
@@ -73,6 +74,30 @@ This project was inspired by [langchain-ai/langconnect](https://github.com/langc
 ## 🏗️ Architecture
 
 ![Overall Architecture](./assets/structure.png)
+
+### Authentication Flow
+
+The authentication system implements a secure token refresh mechanism:
+
+```
+┌─────────────┐     ┌──────────────┐     ┌───────────┐
+│   Browser   │────▶│   NextAuth   │────▶│ Supabase  │
+│             │◀────│   (JWT)      │◀────│   Auth    │
+└─────────────┘     └──────────────┘     └───────────┘
+     │                      │
+     │ httpOnly cookie     │ refresh token
+     │ (encrypted JWT)     │ stored in JWT
+     │                      │
+     ▼                      ▼
+ Only accessToken      Auto refresh when
+ exposed to client     accessToken expires
+```
+
+**Key Security Features:**
+- Refresh tokens are never exposed to the client
+- Automatic token refresh when access token expires
+- Token rotation on each refresh for enhanced security
+- Encrypted JWT storage in httpOnly cookies
 
 ## 🚀 Getting Started
 
