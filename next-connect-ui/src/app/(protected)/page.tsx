@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { FileText, Folder, Search, FlaskConical, Github, Book, ExternalLink, GitBranch } from 'lucide-react'
+import { FileText, Folder, Search, FlaskConical, Github, ExternalLink } from 'lucide-react'
 import { useTranslation } from '@/hooks/use-translation'
 
 export default function MainPage() {
@@ -142,42 +142,6 @@ export default function MainPage() {
                   >
                     <Github className="w-4 h-4" />
                     {t('main.about.links.github')}
-                    <ExternalLink className="w-3 h-3" />
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="https://github.com/teddynote-lab"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100"
-                  >
-                    <GitBranch className="w-4 h-4" />
-                    {t('main.about.links.teddynote')}
-                    <ExternalLink className="w-3 h-3" />
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="https://github.com/teddynote-lab/LangConnect-Client#readme"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100"
-                  >
-                    <Book className="w-4 h-4" />
-                    {t('main.about.links.docs')}
-                    <ExternalLink className="w-3 h-3" />
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="https://github.com/jikime/next-connect-ui"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100"
-                  >
-                    <Book className="w-4 h-4" />
-                    {t('main.about.links.nextjsClient')}
                     <ExternalLink className="w-3 h-3" />
                   </a>
                 </li>
