@@ -88,14 +88,14 @@ export default function SearchPage() {
   const handleSearch = async () => {
     if (!query.trim()) {
       toast.error(t('common.error'), {
-        description: 'Please enter search query'
+        description: t('search.enterSearchQuery')
       })
       return
     }
     
     if (!selectedCollection) {
       toast.error(t('common.error'), {
-        description: 'Please select a collection'
+        description: t('search.selectCollectionFirst')
       })
       return
     }
@@ -113,7 +113,7 @@ export default function SearchPage() {
           searchData.filter = JSON.parse(filterJson)
         } catch (error) {
           toast.error(t('common.error'), {
-            description: 'Invalid JSON format'
+            description: t('search.invalidJson')
           })
           setLoading(false)
           return
@@ -133,7 +133,7 @@ export default function SearchPage() {
       if (res.success) {
         setResults(res.data || [])
         if (res.data && res.data.length > 0) {
-          toast.success(`Found ${res.data.length} results`)
+          toast.success(t('search.foundResults', { count: res.data.length }))
         } else {
           toast.info(t('search.noResults'))
         }

@@ -1,5 +1,6 @@
 import { useSession, signIn, signOut } from "next-auth/react";
 import { useState } from "react";
+import { useTranslation } from "./use-translation";
 
 // 회원가입 요청 타입 정의
 interface RegisterParams {
@@ -32,6 +33,7 @@ interface LogoutResponse {
 
 export const useAuth = () => {
   const { data: session, status, update } = useSession();
+  const { t } = useTranslation();
   const isLoading = status === "loading";
   const isAuthenticated = status === "authenticated";
   const [registerLoading, setRegisterLoading] = useState(false);
@@ -62,33 +64,33 @@ export const useAuth = () => {
         if (result.error === 'EMAIL_VERIFICATION_REQUIRED') {
           return {
             success: true,
-            message: '이메일로 발송된 확인 링크를 클릭하여 이메일 인증을 완료해 주세요.',
+            message: t('auth.emailVerification.message'),
           };
         }
         // 이미 가입된 사용자인 경우
         if (result.error === 'USER_ALREADY_EXISTS') {
           return {
             success: false,
-            message: '이미 가입된 이메일입니다.',
+            message: t('auth.signUpEmailExists'),
           };
         }
         
         return {
           success: false,
-          message: '회원가입 중 오류가 발생했습니다.',
+          message: t('auth.signUpError'),
         };
       }
 
       if (result?.url) {
         return {
           success: true,
-          message: '회원가입이 완료되었습니다.',
+          message: t('auth.signUpSuccess'),
         };
       }
 
       return {
         success: false,
-        message: '알 수 없는 오류가 발생했습니다.',
+        message: t('auth.unknownError'),
       };
     } finally {
       setRegisterLoading(false);
@@ -117,27 +119,27 @@ export const useAuth = () => {
         return {
           success: false,
           message: result.error === 'CredentialsSignin' 
-            ? '이메일 또는 비밀번호가 올바르지 않습니다.' 
-            : '로그인 중 오류가 발생했습니다.',
+            ? t('auth.signInInvalidCredentials') 
+            : t('auth.signInError'),
         };
       }
 
       if (result?.url) {
         return {
           success: true,
-          message: '로그인이 완료되었습니다.',
+          message: t('auth.signInSuccess'),
         };
       }
 
       return {
         success: false,
-        message: '알 수 없는 오류가 발생했습니다.',
+        message: t('auth.unknownError'),
       };
     } catch (error) {
       console.error('Login error:', error);
       return {
         success: false,
-        message: '로그인 중 오류가 발생했습니다.',
+        message: t('auth.signInError'),
       };
     } finally {
       setLoginLoading(false);

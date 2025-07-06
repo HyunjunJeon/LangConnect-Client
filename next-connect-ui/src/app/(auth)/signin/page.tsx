@@ -10,10 +10,12 @@ import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { loginSchema, LoginFormValues } from "@/lib/schemas"
 import { useAuth } from "@/hooks/use-auth"
+import { useTranslation } from "@/hooks/use-translation"
 
 export default function SignIn() {
   const router = useRouter();
   const { login, loginLoading } = useAuth();
+  const { t } = useTranslation();
   
   // 1. useForm 설정
   const {
@@ -52,10 +54,10 @@ export default function SignIn() {
         });
       }
     } catch (error) {
-      console.error("로그인 오류:", error);
+      console.error("Sign in error:", error);
       setError("root", {
         type: "manual",
-        message: "로그인 처리 중 오류가 발생했습니다.",
+        message: t("auth.signInProcessError"),
       });
     }
   };
@@ -64,15 +66,15 @@ export default function SignIn() {
     <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10 bg-background dark:bg-background">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1 pb-2">
-          <h1 className="text-2xl font-bold tracking-tight dark:text-gray-100">로그인</h1>
-          <p className="text-sm text-muted-foreground dark:text-gray-300">아래 정보를 입력하여 로그인해주세요.</p>
+          <h1 className="text-2xl font-bold tracking-tight dark:text-gray-100">{t("auth.signIn")}</h1>
+          <p className="text-sm text-muted-foreground dark:text-gray-300">{t("auth.signInDescription")}</p>
         </CardHeader>
         <CardContent className="space-y-4">
           {/* 2. 폼 필드와 register 함수 연결 */}
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="space-y-2">
               <label htmlFor="email" className="text-sm font-medium dark:text-gray-200">
-                이메일
+                {t("auth.email")}
               </label>
               <Input 
                 id="email" 
@@ -87,7 +89,7 @@ export default function SignIn() {
             </div>
             <div className="space-y-2">
               <label htmlFor="password" className="text-sm font-medium dark:text-gray-200">
-                비밀번호
+                {t("auth.password")}
               </label>
               <Input 
                 id="password" 
@@ -109,13 +111,13 @@ export default function SignIn() {
               className="w-full bg-black dark:bg-white dark:text-black text-white hover:bg-black/90 dark:hover:bg-white/90"
               disabled={isSubmitting || loginLoading}
             >
-              {(isSubmitting || loginLoading) ? "처리 중..." : "로그인"}
+              {(isSubmitting || loginLoading) ? t("auth.signInProcessing") : t("auth.signIn")}
             </Button>
           </form>
           <div className="text-center text-sm dark:text-gray-300">
-            계정이 없으신가요?{" "}
+            {t("auth.dontHaveAccount")}{" "}
             <Link href="/signup" className="font-medium underline dark:text-blue-400 hover:dark:text-blue-300">
-              회원 가입
+              {t("auth.signUp")}
             </Link>
           </div>
         </CardContent>
