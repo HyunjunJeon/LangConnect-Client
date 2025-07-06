@@ -20,7 +20,7 @@ import {
   Copy,
   Check
 } from 'lucide-react';
-import { useTranslations } from 'next-intl';
+import { useTranslation } from '@/hooks/use-translation';
 import { type MCPServer } from '@/types/mcp';
 import { mcpApi } from '@/lib/api/mcp';
 import { useToast } from '@/hooks/use-toast';
@@ -42,12 +42,12 @@ export function ServerLogsDialog({
   open,
   onOpenChange,
 }: ServerLogsDialogProps) {
-  const t = useTranslations('mcp');
+  const { t } = useTranslation();
   const { toast } = useToast();
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [streaming, setStreaming] = useState(true);
   const [copied, setCopied] = useState(false);
-  const eventSourceRef = useRef<EventSource | null>(null);
+  const cleanupRef = useRef<(() => void) | null>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const shouldAutoScrollRef = useRef(true);
 
@@ -74,8 +74,8 @@ export function ServerLogsDialog({
     }
   }, [logs]);
 
-  const startStreaming = useCallback(() => {
-    eventSourceRef.current = mcpApi.streamLogs(
+  const startStreaming = useCallback(async () => {
+    const cleanup = await mcpApi.streamLogs(
       server.id,
       (logData) => {
         try {
@@ -92,19 +92,20 @@ export function ServerLogsDialog({
       },
       (error) => {
         toast({
-          title: t('logs.streamError'),
+          title: t('mcp.logs.streamError'),
           description: error.message,
           variant: 'destructive',
         });
         setStreaming(false);
       }
     );
+    cleanupRef.current = cleanup;
   }, [server.id, t, toast]);
 
   const stopStreaming = useCallback(() => {
-    if (eventSourceRef.current) {
-      eventSourceRef.current.close();
-      eventSourceRef.current = null;
+    if (cleanupRef.current) {
+      cleanupRef.current();
+      cleanupRef.current = null;
     }
   }, []);
 
@@ -143,8 +144,8 @@ export function ServerLogsDialog({
       setTimeout(() => setCopied(false), 2000);
     } catch (error) {
       toast({
-        title: t('logs.copyError'),
-        description: t('logs.copyErrorDescription'),
+        title: t('mcp.logs.copyError'),
+        description: t('mcp.logs.copyErrorDescription'),
         variant: 'destructive',
       });
     }
@@ -179,28 +180,28 @@ export function ServerLogsDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl h-[80vh] flex flex-col">
+      <DialogContent className="max-w-5xl h-[85vh] flex flex-col">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Terminal className="h-5 w-5" />
-            {t('logs.title', { name: server.config.name })}
+            {t('mcp.logs.title', { name: server.config.name })}
           </DialogTitle>
           <DialogDescription>
-            {streaming ? t('logs.streamingDescription') : t('logs.pausedDescription')}
+            {streaming ? t('mcp.logs.streamingDescription') : t('mcp.logs.pausedDescription')}
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex items-center justify-between py-2 border-b">
-          <div className="flex items-center gap-2">
+        <div className="flex items-center justify-between py-4 border-b">
+          <div className="flex items-center gap-3">
             <Badge variant={streaming ? 'default' : 'secondary'}>
-              {streaming ? t('logs.live') : t('logs.paused')}
+              {streaming ? t('mcp.logs.live') : t('mcp.logs.paused')}
             </Badge>
             <span className="text-sm text-gray-500">
-              {t('logs.count', { count: logs.length })}
+              {t('mcp.logs.count', { count: logs.length })}
             </span>
           </div>
           
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             <Button
               size="sm"
               variant="outline"
@@ -209,12 +210,12 @@ export function ServerLogsDialog({
               {streaming ? (
                 <>
                   <Pause className="h-4 w-4 mr-2" />
-                  {t('logs.pause')}
+                  {t('mcp.logs.pause')}
                 </>
               ) : (
                 <>
                   <Play className="h-4 w-4 mr-2" />
-                  {t('logs.resume')}
+                  {t('mcp.logs.resume')}
                 </>
               )}
             </Button>
@@ -228,12 +229,12 @@ export function ServerLogsDialog({
               {copied ? (
                 <>
                   <Check className="h-4 w-4 mr-2" />
-                  {t('logs.copied')}
+                  {t('mcp.logs.copied')}
                 </>
               ) : (
                 <>
                   <Copy className="h-4 w-4 mr-2" />
-                  {t('logs.copy')}
+                  {t('mcp.logs.copy')}
                 </>
               )}
             </Button>
@@ -245,7 +246,7 @@ export function ServerLogsDialog({
               disabled={logs.length === 0}
             >
               <Download className="h-4 w-4 mr-2" />
-              {t('logs.download')}
+              {t('mcp.logs.download')}
             </Button>
             
             <Button
@@ -255,19 +256,19 @@ export function ServerLogsDialog({
               disabled={logs.length === 0}
             >
               <Trash2 className="h-4 w-4 mr-2" />
-              {t('logs.clear')}
+              {t('mcp.logs.clear')}
             </Button>
           </div>
         </div>
 
         <ScrollArea 
           ref={scrollAreaRef}
-          className="flex-1 p-4 bg-gray-900 rounded-md"
+          className="flex-1 p-4 bg-gray-900 rounded-md mt-4"
           onScroll={handleScroll}
         >
           {logs.length === 0 ? (
             <div className="text-center text-gray-500 py-8">
-              {t('logs.noLogs')}
+              {t('mcp.logs.noLogs')}
             </div>
           ) : (
             <div className="space-y-1 font-mono text-sm">

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslation } from '@/hooks/use-translation';
 import { 
   Card, 
   CardContent, 
@@ -31,7 +31,7 @@ import { ServerList } from '@/components/mcp/ServerList';
 import { CreateServerDialog } from '@/components/mcp/CreateServerDialog';
 
 export default function MCPDashboard() {
-  const t = useTranslations('mcp');
+  const { t } = useTranslation();
   const [servers, setServers] = useState<MCPServer[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -128,8 +128,8 @@ export default function MCPDashboard() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">{t('dashboard.title')}</h1>
-          <p className="text-gray-600 mt-1">{t('dashboard.description')}</p>
+          <h1 className="text-3xl font-bold">{t('mcp.dashboard.title')}</h1>
+          <p className="text-gray-600 mt-1">{t('mcp.dashboard.description')}</p>
         </div>
         <div className="flex gap-2">
           <Button
@@ -139,11 +139,11 @@ export default function MCPDashboard() {
             disabled={refreshing}
           >
             <RotateCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
-            {t('dashboard.refresh')}
+            {t('mcp.dashboard.refresh')}
           </Button>
           <Button onClick={() => setCreateDialogOpen(true)}>
             <Plus className="h-4 w-4 mr-2" />
-            {t('dashboard.createServer')}
+            {t('mcp.dashboard.createServer')}
           </Button>
         </div>
       </div>
@@ -161,7 +161,7 @@ export default function MCPDashboard() {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-gray-600">
-              {t('dashboard.totalServers')}
+              {t('mcp.dashboard.totalServers')}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -175,14 +175,14 @@ export default function MCPDashboard() {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-gray-600">
-              {t('dashboard.runningServers')}
+              {t('mcp.dashboard.runningServers')}
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-2">
               <CheckCircle className="h-5 w-5 text-green-500" />
               <span className="text-2xl font-bold">
-                {servers.filter(s => s.status.state === ServerStatus.RUNNING).length}
+                {servers.filter(s => s.status.status === ServerStatus.RUNNING).length}
               </span>
             </div>
           </CardContent>
@@ -191,14 +191,14 @@ export default function MCPDashboard() {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-gray-600">
-              {t('dashboard.stoppedServers')}
+              {t('mcp.dashboard.stoppedServers')}
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-2">
               <XCircle className="h-5 w-5 text-gray-500" />
               <span className="text-2xl font-bold">
-                {servers.filter(s => s.status.state === ServerStatus.STOPPED).length}
+                {servers.filter(s => s.status.status === ServerStatus.STOPPED).length}
               </span>
             </div>
           </CardContent>
@@ -207,14 +207,14 @@ export default function MCPDashboard() {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-gray-600">
-              {t('dashboard.errorServers')}
+              {t('mcp.dashboard.errorServers')}
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-2">
               <AlertCircle className="h-5 w-5 text-red-500" />
               <span className="text-2xl font-bold">
-                {servers.filter(s => s.status.state === ServerStatus.ERROR).length}
+                {servers.filter(s => s.status.status === ServerStatus.ERROR).length}
               </span>
             </div>
           </CardContent>

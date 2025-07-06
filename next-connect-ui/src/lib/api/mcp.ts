@@ -49,10 +49,24 @@ class MCPApiClient {
   }
 
   async createServer(data: CreateServerRequest): Promise<MCPServer> {
+    // Map frontend config to backend format
+    const backendConfig = {
+      name: data.config.name,
+      description: data.config.description || '',
+      transport: data.config.transport,
+      port: data.config.port,
+      environment: data.config.env || {},
+      docker_image: data.config.image || 'langconnect-mcp:latest',
+      memory_limit: data.config.resources?.memory_limit || '512m',
+      cpu_limit: data.config.resources?.cpu_limit ? parseFloat(data.config.resources.cpu_limit) : 1.0,
+      middleware_config: data.config.middleware ? 
+        { enabled_middleware: data.config.middleware } : {},
+    };
+
     const response = await fetch(`${API_BASE_URL}/api/mcp/servers`, {
       method: 'POST',
       headers: await this.getHeaders(),
-      body: JSON.stringify(data),
+      body: JSON.stringify(backendConfig),
     });
     
     if (!response.ok) {
@@ -90,7 +104,7 @@ class MCPApiClient {
     }
   }
 
-  async startServer(serverId: string): Promise<MCPServer> {
+  async startServer(serverId: string): Promise<{ success: boolean; message: string; server?: MCPServer }> {
     const response = await fetch(`${API_BASE_URL}/api/mcp/servers/${serverId}/start`, {
       method: 'POST',
       headers: await this.getHeaders(),
@@ -104,7 +118,7 @@ class MCPApiClient {
     return response.json();
   }
 
-  async stopServer(serverId: string): Promise<MCPServer> {
+  async stopServer(serverId: string): Promise<{ success: boolean; message: string; server?: MCPServer }> {
     const response = await fetch(`${API_BASE_URL}/api/mcp/servers/${serverId}/stop`, {
       method: 'POST',
       headers: await this.getHeaders(),
@@ -118,7 +132,7 @@ class MCPApiClient {
     return response.json();
   }
 
-  async restartServer(serverId: string): Promise<MCPServer> {
+  async restartServer(serverId: string): Promise<{ success: boolean; message: string; server?: MCPServer }> {
     const response = await fetch(`${API_BASE_URL}/api/mcp/servers/${serverId}/restart`, {
       method: 'POST',
       headers: await this.getHeaders(),
@@ -147,22 +161,63 @@ class MCPApiClient {
     return response.json();
   }
 
-  streamLogs(serverId: string, onMessage: (log: string) => void, onError?: (error: Error) => void): EventSource {
-    const eventSource = new EventSource(`${API_BASE_URL}/api/mcp/servers/${serverId}/logs`);
-    
-    eventSource.onmessage = (event) => {
-      onMessage(event.data);
-    };
-    
-    eventSource.onerror = (error) => {
-      console.error('SSE error:', error);
-      if (onError) {
-        onError(new Error('Failed to stream logs'));
+  async streamLogs(serverId: string, onMessage: (log: string) => void, onError?: (error: Error) => void): Promise<() => void> {
+    try {
+      const headers = await this.getHeaders();
+      // Remove Content-Type for SSE
+      delete (headers as any)['Content-Type'];
+      
+      const response = await fetch(`${API_BASE_URL}/api/mcp/servers/${serverId}/logs?follow=true`, {
+        headers,
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to stream logs: ${response.statusText}`);
       }
-      eventSource.close();
-    };
-    
-    return eventSource;
+      
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+      
+      const read = async () => {
+        if (!reader) return;
+        
+        try {
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            
+            buffer += decoder.decode(value, { stream: true });
+            const lines = buffer.split('\n');
+            
+            buffer = lines.pop() || '';
+            
+            for (const line of lines) {
+              if (line.startsWith('data: ')) {
+                const data = line.slice(6);
+                onMessage(data);
+              }
+            }
+          }
+        } catch (error) {
+          if (onError) {
+            onError(error as Error);
+          }
+        }
+      };
+      
+      read();
+      
+      // Return cleanup function
+      return () => {
+        reader?.cancel();
+      };
+    } catch (error) {
+      if (onError) {
+        onError(error as Error);
+      }
+      return () => {};
+    }
   }
 }
 

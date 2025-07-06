@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Play, Square, RotateCw, Loader2 } from 'lucide-react';
-import { useTranslations } from 'next-intl';
+import { useTranslation } from '@/hooks/use-translation';
 import { ServerStatus, type MCPServer } from '@/types/mcp';
 import { mcpApi } from '@/lib/api/mcp';
 import { useToast } from '@/hooks/use-toast';
@@ -19,23 +19,25 @@ export function ServerControlButtons({
   onServerUpdated,
   size = 'sm' 
 }: ServerControlButtonsProps) {
-  const t = useTranslations('mcp');
+  const { t } = useTranslation();
   const { toast } = useToast();
   const [loading, setLoading] = useState<string | null>(null);
 
   const handleStart = async () => {
     setLoading('start');
     try {
-      const updatedServer = await mcpApi.startServer(server.id);
-      onServerUpdated(updatedServer);
+      const response = await mcpApi.startServer(server.id);
+      if (response.success && response.server) {
+        onServerUpdated(response.server);
+      }
       toast({
-        title: t('server.startSuccess'),
-        description: t('server.startSuccessDescription', { name: server.config.name }),
+        title: t('mcp.server.startSuccess'),
+        description: t('mcp.server.startSuccessDescription', { name: server.config.name }),
       });
     } catch (error) {
       toast({
-        title: t('server.startError'),
-        description: error instanceof Error ? error.message : t('server.startErrorDescription'),
+        title: t('mcp.server.startError'),
+        description: error instanceof Error ? error.message : t('mcp.server.startErrorDescription'),
         variant: 'destructive',
       });
     } finally {
@@ -46,16 +48,18 @@ export function ServerControlButtons({
   const handleStop = async () => {
     setLoading('stop');
     try {
-      const updatedServer = await mcpApi.stopServer(server.id);
-      onServerUpdated(updatedServer);
+      const response = await mcpApi.stopServer(server.id);
+      if (response.success && response.server) {
+        onServerUpdated(response.server);
+      }
       toast({
-        title: t('server.stopSuccess'),
-        description: t('server.stopSuccessDescription', { name: server.config.name }),
+        title: t('mcp.server.stopSuccess'),
+        description: t('mcp.server.stopSuccessDescription', { name: server.config.name }),
       });
     } catch (error) {
       toast({
-        title: t('server.stopError'),
-        description: error instanceof Error ? error.message : t('server.stopErrorDescription'),
+        title: t('mcp.server.stopError'),
+        description: error instanceof Error ? error.message : t('mcp.server.stopErrorDescription'),
         variant: 'destructive',
       });
     } finally {
@@ -66,16 +70,18 @@ export function ServerControlButtons({
   const handleRestart = async () => {
     setLoading('restart');
     try {
-      const updatedServer = await mcpApi.restartServer(server.id);
-      onServerUpdated(updatedServer);
+      const response = await mcpApi.restartServer(server.id);
+      if (response.success && response.server) {
+        onServerUpdated(response.server);
+      }
       toast({
-        title: t('server.restartSuccess'),
-        description: t('server.restartSuccessDescription', { name: server.config.name }),
+        title: t('mcp.server.restartSuccess'),
+        description: t('mcp.server.restartSuccessDescription', { name: server.config.name }),
       });
     } catch (error) {
       toast({
-        title: t('server.restartError'),
-        description: error instanceof Error ? error.message : t('server.restartErrorDescription'),
+        title: t('mcp.server.restartError'),
+        description: error instanceof Error ? error.message : t('mcp.server.restartErrorDescription'),
         variant: 'destructive',
       });
     } finally {
@@ -84,18 +90,18 @@ export function ServerControlButtons({
   };
 
   const isTransitioning = 
-    server.status.state === ServerStatus.STARTING ||
-    server.status.state === ServerStatus.STOPPING;
+    server.status.status === ServerStatus.STARTING ||
+    server.status.status === ServerStatus.STOPPING;
 
   const canStart = 
-    server.status.state === ServerStatus.STOPPED ||
-    server.status.state === ServerStatus.ERROR;
+    server.status.status === ServerStatus.STOPPED ||
+    server.status.status === ServerStatus.ERROR;
 
   const canStop = 
-    server.status.state === ServerStatus.RUNNING;
+    server.status.status === ServerStatus.RUNNING;
 
   const canRestart = 
-    server.status.state === ServerStatus.RUNNING;
+    server.status.status === ServerStatus.RUNNING;
 
   return (
     <div className="flex items-center gap-1">
@@ -104,7 +110,7 @@ export function ServerControlButtons({
         variant="ghost"
         onClick={handleStart}
         disabled={!canStart || loading !== null || isTransitioning}
-        title={t('server.start')}
+        title={t('mcp.server.start')}
       >
         {loading === 'start' ? (
           <Loader2 className="h-4 w-4 animate-spin" />
@@ -118,7 +124,7 @@ export function ServerControlButtons({
         variant="ghost"
         onClick={handleStop}
         disabled={!canStop || loading !== null || isTransitioning}
-        title={t('server.stop')}
+        title={t('mcp.server.stop')}
       >
         {loading === 'stop' ? (
           <Loader2 className="h-4 w-4 animate-spin" />
@@ -132,7 +138,7 @@ export function ServerControlButtons({
         variant="ghost"
         onClick={handleRestart}
         disabled={!canRestart || loading !== null || isTransitioning}
-        title={t('server.restart')}
+        title={t('mcp.server.restart')}
       >
         {loading === 'restart' ? (
           <Loader2 className="h-4 w-4 animate-spin" />

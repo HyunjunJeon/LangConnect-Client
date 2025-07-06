@@ -8,11 +8,14 @@ env = Config()
 IS_TESTING = env("IS_TESTING", cast=str, default="").lower() == "true"
 
 if IS_TESTING:
-    SUPABASE_URL = ""
-    SUPABASE_KEY = ""
+    # Use dummy values for testing mode
+    SUPABASE_URL = "https://test.supabase.co"
+    SUPABASE_KEY = "test-anon-key"
+    SUPABASE_JWT_SECRET = "test-jwt-secret"
 else:
     SUPABASE_URL = env("SUPABASE_URL", cast=str, default=undefined)
     SUPABASE_KEY = env("SUPABASE_KEY", cast=str, default=undefined)
+    SUPABASE_JWT_SECRET = env("SUPABASE_JWT_SECRET", cast=str, default="")
 
 
 def get_embeddings() -> Embeddings:

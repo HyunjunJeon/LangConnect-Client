@@ -51,7 +51,7 @@ services:
       POSTGRES_SSLMODE: disable  # For development environment
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:${POSTGRES_PORT}/${POSTGRES_DB}
       # Allow all localhost origins
-      ALLOW_ORIGINS: '["http://localhost:3000", "http://localhost:8080", "http://localhost:8081", "http://localhost", "http://127.0.0.1:3000", "http://127.0.0.1:8080", "http://127.0.0.1:8081", "http://127.0.0.1"]'
+      ALLOW_ORIGINS: '["http://localhost:3000", "http://localhost:3893", "http://localhost:8080", "http://localhost:8081", "http://localhost", "http://127.0.0.1:3000", "http://127.0.0.1:3893", "http://127.0.0.1:8080", "http://127.0.0.1:8081", "http://127.0.0.1"]'
       # MCP Controller settings
       MCP_CONTROLLER_PORT: 8081
       # Development mode

@@ -17,15 +17,26 @@ from langchain_core.prompts import PromptTemplate
 from langchain_openai import ChatOpenAI
 
 from fastmcp import FastMCP
+from starlette.requests import Request
+from starlette.responses import PlainTextResponse
 
 load_dotenv()
 
 
 # Configuration
 API_BASE_URL = os.getenv("API_BASE_URL", "http://localhost:8080")
-SUPABASE_URL = os.getenv("SUPABASE_URL")
-SUPABASE_KEY = os.getenv("SUPABASE_KEY")
-SUPABASE_JWT_SECRET = os.getenv("SUPABASE_JWT_SECRET", "")
+IS_TESTING = os.getenv("IS_TESTING", "").lower() == "true"
+
+# Handle Supabase config for testing mode
+if IS_TESTING:
+    SUPABASE_URL = os.getenv("SUPABASE_URL", "https://test.supabase.co")
+    SUPABASE_KEY = os.getenv("SUPABASE_KEY", "test-anon-key")
+    SUPABASE_JWT_SECRET = os.getenv("SUPABASE_JWT_SECRET", "user1")  # Default test token
+else:
+    SUPABASE_URL = os.getenv("SUPABASE_URL")
+    SUPABASE_KEY = os.getenv("SUPABASE_KEY")
+    SUPABASE_JWT_SECRET = os.getenv("SUPABASE_JWT_SECRET", "")
+
 SSE_PORT = int(os.getenv("SSE_PORT", "8765"))
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
 
@@ -42,6 +53,13 @@ class LineListOutputParser(BaseOutputParser[list[str]]):
 
 # Create FastMCP server
 mcp = FastMCP(name="LangConnect")
+
+
+# Add health check endpoint
+@mcp.custom_route("/health", methods=["GET"])
+async def health_check(request: Request) -> PlainTextResponse:
+    """Health check endpoint for container orchestration."""
+    return PlainTextResponse("OK", status_code=200)
 
 
 # Authentication functions
@@ -122,6 +140,12 @@ def update_env_file(token: str):
 
 def get_access_token():
     """Get Supabase access token through user authentication."""
+    # Check if we're running in a non-interactive environment (like Docker)
+    if not sys.stdin.isatty():
+        print("❌ Cannot prompt for credentials in non-interactive mode.")
+        print("⚠️  MCP servers should be started from the LangConnect UI.")
+        return None
+    
     print("\n🔐 Authentication Required")
     print("=" * 40)
     print("Please sign in to generate your access token")
@@ -154,33 +178,31 @@ def get_access_token():
 
 
 def ensure_valid_token():
-    """Ensure we have a valid token, prompting for login if necessary."""
+    """Ensure we have a valid token from environment variables."""
     global SUPABASE_JWT_SECRET
 
     # Check if we're in testing mode
-    if os.getenv("IS_TESTING", "").lower() == "true":
+    if IS_TESTING:
         print("🧪 Running in testing mode - authentication bypassed")
-        return "user1"  # Use test token
+        # Return the token passed by the MCP controller
+        return SUPABASE_JWT_SECRET or "user1"
 
-    # First check if we have a token
+    # Check if we have a token from environment
     if SUPABASE_JWT_SECRET:
-        print("Testing existing token...")
+        print("🔑 Using token from environment variables")
+        print("Testing token validity...")
         if test_token(SUPABASE_JWT_SECRET):
-            print("✅ Existing token is valid!")
+            print("✅ Token is valid!")
             return SUPABASE_JWT_SECRET
         else:
-            print("❌ Existing token is invalid or expired.")
+            print("❌ Token is invalid or expired.")
+            print("⚠️  Please restart the MCP server from the UI to refresh the token.")
+            return None
 
-    # Get new token
-    print("\n⚠️  No valid token found. Please authenticate.")
-    new_token = get_access_token()
-
-    if new_token:
-        SUPABASE_JWT_SECRET = new_token
-        # Reload the token for the current session
-        os.environ["SUPABASE_JWT_SECRET"] = new_token
-        return new_token
-
+    # No token available
+    print("❌ No authentication token provided.")
+    print("⚠️  MCP servers must be started from the LangConnect UI.")
+    print("   The UI will provide the necessary authentication token.")
     return None
 
 
@@ -403,15 +425,21 @@ async def get_health_status() -> str:
 
 
 if __name__ == "__main__":
-    print("🚀 LangConnect MCP SSE Server")
+    print("🚀 LangConnect MCP Server")
     print("=" * 50)
+    print(f"\n🌍 API Base URL: {API_BASE_URL}")
+    print(f"🆔 Testing Mode: {'Yes' if IS_TESTING else 'No'}")
+    print(f"🔑 Auth Token: {'Present' if SUPABASE_JWT_SECRET else 'Missing'}")
 
     # Ensure we have a valid token before starting
     valid_token = ensure_valid_token()
 
     if not valid_token:
-        print("\n❌ Unable to obtain valid authentication token.")
-        print("Please check your credentials and try again.")
+        print("\n❌ Unable to start MCP server without authentication.")
+        print("\n💡 This server should be started from the LangConnect UI:")
+        print("   1. Open http://localhost:3000/mcp")
+        print("   2. Create a new MCP server")
+        print("   3. Click 'Start' to launch with proper authentication")
         sys.exit(1)
 
     # Update the client with the valid token

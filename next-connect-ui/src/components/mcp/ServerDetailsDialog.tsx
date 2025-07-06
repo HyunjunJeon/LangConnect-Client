@@ -10,7 +10,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useTranslations } from 'next-intl';
+import { useTranslation } from '@/hooks/use-translation';
 import { type MCPServer } from '@/types/mcp';
 import { 
   Server, 
@@ -35,7 +35,7 @@ export function ServerDetailsDialog({
   open,
   onOpenChange,
 }: ServerDetailsDialogProps) {
-  const t = useTranslations('mcp');
+  const { t } = useTranslation();
 
   const formatDate = (dateString?: string) => {
     if (!dateString) return '-';
@@ -55,16 +55,16 @@ export function ServerDetailsDialog({
         <DialogHeader>
           <DialogTitle>{server.config.name}</DialogTitle>
           <DialogDescription>
-            {server.config.description || t('server.noDescription')}
+            {server.config.description || t('mcp.server.noDescription')}
           </DialogDescription>
         </DialogHeader>
 
         <Tabs defaultValue="overview" className="mt-4">
           <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="overview">{t('server.overview')}</TabsTrigger>
-            <TabsTrigger value="configuration">{t('server.configuration')}</TabsTrigger>
-            <TabsTrigger value="status">{t('server.status')}</TabsTrigger>
-            <TabsTrigger value="metrics">{t('server.metrics')}</TabsTrigger>
+            <TabsTrigger value="overview">{t('mcp.server.overview')}</TabsTrigger>
+            <TabsTrigger value="configuration">{t('mcp.server.configuration')}</TabsTrigger>
+            <TabsTrigger value="status">{t('mcp.server.status')}</TabsTrigger>
+            <TabsTrigger value="metrics">{t('mcp.server.metrics')}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-4 mt-4">
@@ -73,25 +73,25 @@ export function ServerDetailsDialog({
                 <CardHeader className="pb-3">
                   <CardTitle className="text-sm font-medium flex items-center gap-2">
                     <Server className="h-4 w-4" />
-                    {t('server.basicInfo')}
+                    {t('mcp.server.basicInfo')}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-gray-600">{t('server.id')}:</span>
+                    <span className="text-gray-600">{t('mcp.server.id')}:</span>
                     <span className="font-mono">{server.id}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600">{t('server.transport')}:</span>
+                    <span className="text-gray-600">{t('mcp.server.transport')}:</span>
                     <Badge variant="outline">{server.config.transport.toUpperCase()}</Badge>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600">{t('server.port')}:</span>
+                    <span className="text-gray-600">{t('mcp.server.port')}:</span>
                     <span>{server.config.port || '-'}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600">{t('server.authRequired')}:</span>
-                    <span>{server.config.auth_required ? t('common.yes') : t('common.no')}</span>
+                    <span className="text-gray-600">{t('mcp.server.dockerImage')}:</span>
+                    <span className="font-mono">{server.config.docker_image || '-'}</span>
                   </div>
                 </CardContent>
               </Card>
@@ -100,24 +100,24 @@ export function ServerDetailsDialog({
                 <CardHeader className="pb-3">
                   <CardTitle className="text-sm font-medium flex items-center gap-2">
                     <Clock className="h-4 w-4" />
-                    {t('server.timestamps')}
+                    {t('mcp.server.timestamps')}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-gray-600">{t('server.createdAt')}:</span>
+                    <span className="text-gray-600">{t('mcp.server.createdAt')}:</span>
                     <span>{formatDate(server.created_at)}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600">{t('server.updatedAt')}:</span>
+                    <span className="text-gray-600">{t('mcp.server.updatedAt')}:</span>
                     <span>{formatDate(server.updated_at)}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600">{t('server.startedAt')}:</span>
-                    <span>{formatDate(server.status.started_at)}</span>
+                    <span className="text-gray-600">{t('mcp.server.startedAt')}:</span>
+                    <span>{server.status.started_at ? formatDate(server.status.started_at) : '-'}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600">{t('server.createdBy')}:</span>
+                    <span className="text-gray-600">{t('mcp.server.createdBy')}:</span>
                     <span className="font-mono text-xs">{server.created_by}</span>
                   </div>
                 </CardContent>
@@ -129,20 +129,20 @@ export function ServerDetailsDialog({
                 <CardHeader className="pb-3">
                   <CardTitle className="text-sm font-medium flex items-center gap-2">
                     <Network className="h-4 w-4" />
-                    {t('server.containerInfo')}
+                    {t('mcp.server.containerInfo')}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-gray-600">{t('server.containerName')}:</span>
+                    <span className="text-gray-600">{t('mcp.server.containerName')}:</span>
                     <span className="font-mono">{server.container_name}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600">{t('server.containerId')}:</span>
+                    <span className="text-gray-600">{t('mcp.server.containerId')}:</span>
                     <span className="font-mono text-xs">{server.status.container_id || '-'}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600">{t('server.apiUrl')}:</span>
+                    <span className="text-gray-600">{t('mcp.server.apiUrl')}:</span>
                     <span className="font-mono text-xs">{server.api_url || '-'}</span>
                   </div>
                 </CardContent>
@@ -155,28 +155,28 @@ export function ServerDetailsDialog({
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm font-medium flex items-center gap-2">
                   <Settings className="h-4 w-4" />
-                  {t('server.command')}
+                  {t('mcp.server.command')}
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <pre className="bg-gray-100 p-3 rounded text-xs overflow-x-auto">
-                  {server.config.command}
-                  {server.config.args && ` ${server.config.args.join(' ')}`}
+                  {/* Note: command and args not available in backend config */}
+                  {t('mcp.server.notAvailable')}
                 </pre>
               </CardContent>
             </Card>
 
-            {server.config.env && Object.keys(server.config.env).length > 0 && (
+            {server.config.environment && Object.keys(server.config.environment).length > 0 && (
               <Card>
                 <CardHeader className="pb-3">
                   <CardTitle className="text-sm font-medium flex items-center gap-2">
                     <Key className="h-4 w-4" />
-                    {t('server.environmentVariables')}
+                    {t('mcp.server.environmentVariables')}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-1 text-sm">
-                    {Object.entries(server.config.env).map(([key, value]) => (
+                    {Object.entries(server.config.environment).map(([key, value]) => (
                       <div key={key} className="flex justify-between">
                         <span className="font-mono text-gray-600">{key}:</span>
                         <span className="font-mono">{value}</span>
@@ -187,37 +187,35 @@ export function ServerDetailsDialog({
               </Card>
             )}
 
-            {server.config.resources && (
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-medium flex items-center gap-2">
-                    <HardDrive className="h-4 w-4" />
-                    {t('server.resourceLimits')}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">{t('server.cpuLimit')}:</span>
-                    <span>{server.config.resources.cpu_limit || '-'}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">{t('server.memoryLimit')}:</span>
-                    <span>{server.config.resources.memory_limit || '-'}</span>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium flex items-center gap-2">
+                  <HardDrive className="h-4 w-4" />
+                  {t('mcp.server.resourceLimits')}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-gray-600">{t('mcp.server.cpuLimit')}:</span>
+                  <span>{server.config.cpu_limit || '-'}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">{t('mcp.server.memoryLimit')}:</span>
+                  <span>{server.config.memory_limit || '-'}</span>
+                </div>
+              </CardContent>
+            </Card>
 
-            {server.config.middleware && server.config.middleware.length > 0 && (
+            {server.config.middleware_config && server.config.middleware_config.enabled_middleware && server.config.middleware_config.enabled_middleware.length > 0 && (
               <Card>
                 <CardHeader className="pb-3">
                   <CardTitle className="text-sm font-medium">
-                    {t('server.middleware')}
+                    {t('mcp.server.middleware')}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="flex flex-wrap gap-2">
-                    {server.config.middleware.map((mw, index) => (
+                    {server.config.middleware_config.enabled_middleware.map((mw: string, index: number) => (
                       <Badge key={index} variant="secondary">{mw}</Badge>
                     ))}
                   </div>
@@ -231,33 +229,34 @@ export function ServerDetailsDialog({
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm font-medium flex items-center gap-2">
                   <Activity className="h-4 w-4" />
-                  {t('server.currentStatus')}
+                  {t('mcp.server.currentStatus')}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-2 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-gray-600">{t('server.state')}:</span>
-                  <Badge>{server.status.state}</Badge>
+                  <span className="text-gray-600">{t('mcp.server.state')}:</span>
+                  <Badge>{server.status.status}</Badge>
                 </div>
-                {server.status.message && (
+                {server.status.error_message && (
                   <div className="flex justify-between">
-                    <span className="text-gray-600">{t('server.message')}:</span>
-                    <span>{server.status.message}</span>
+                    <span className="text-gray-600">{t('mcp.server.message')}:</span>
+                    <span>{server.status.error_message}</span>
                   </div>
                 )}
               </CardContent>
             </Card>
 
+            {/* Health monitoring not implemented yet
             {server.status.health && (
               <Card>
                 <CardHeader className="pb-3">
                   <CardTitle className="text-sm font-medium">
-                    {t('server.health')}
+                    {t('mcp.server.health')}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-gray-600">{t('server.healthStatus')}:</span>
+                    <span className="text-gray-600">{t('mcp.server.healthStatus')}:</span>
                     <Badge 
                       variant={server.status.health.status === 'healthy' ? 'default' : 'destructive'}
                     >
@@ -265,7 +264,7 @@ export function ServerDetailsDialog({
                     </Badge>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600">{t('server.lastCheck')}:</span>
+                    <span className="text-gray-600">{t('mcp.server.lastCheck')}:</span>
                     <span>{formatDate(server.status.health.last_check)}</span>
                   </div>
                   {server.status.health.details && (
@@ -276,16 +275,18 @@ export function ServerDetailsDialog({
                 </CardContent>
               </Card>
             )}
+            */}
           </TabsContent>
 
           <TabsContent value="metrics" className="space-y-4 mt-4">
+            {/* Metrics not implemented yet
             {server.status.metrics ? (
               <>
                 <Card>
                   <CardHeader className="pb-3">
                     <CardTitle className="text-sm font-medium flex items-center gap-2">
                       <Cpu className="h-4 w-4" />
-                      {t('server.cpuUsage')}
+                      {t('mcp.server.cpuUsage')}
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
@@ -299,7 +300,7 @@ export function ServerDetailsDialog({
                   <CardHeader className="pb-3">
                     <CardTitle className="text-sm font-medium flex items-center gap-2">
                       <MemoryStick className="h-4 w-4" />
-                      {t('server.memoryUsage')}
+                      {t('mcp.server.memoryUsage')}
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
@@ -314,29 +315,29 @@ export function ServerDetailsDialog({
                     <CardHeader className="pb-3">
                       <CardTitle className="text-sm font-medium flex items-center gap-2">
                         <Network className="h-4 w-4" />
-                        {t('server.networkIO')}
+                        {t('mcp.server.networkIO')}
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-2 text-sm">
                       <div className="flex justify-between">
-                        <span className="text-gray-600">{t('server.bytesReceived')}:</span>
+                        <span className="text-gray-600">{t('mcp.server.bytesReceived')}:</span>
                         <span>{formatBytes(server.status.metrics.network_io.rx_bytes)}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-gray-600">{t('server.bytesSent')}:</span>
+                        <span className="text-gray-600">{t('mcp.server.bytesSent')}:</span>
                         <span>{formatBytes(server.status.metrics.network_io.tx_bytes)}</span>
                       </div>
                     </CardContent>
                   </Card>
                 )}
               </>
-            ) : (
+            ) : ( */}
               <Card>
                 <CardContent className="text-center py-8">
-                  <p className="text-gray-500">{t('server.noMetricsAvailable')}</p>
+                  <p className="text-gray-500">{t('mcp.server.noMetricsAvailable')}</p>
                 </CardContent>
               </Card>
-            )}
+            {/* )} */}
           </TabsContent>
         </Tabs>
       </DialogContent>

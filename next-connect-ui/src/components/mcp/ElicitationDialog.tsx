@@ -22,7 +22,7 @@ import {
   Check,
   MessageSquare
 } from 'lucide-react';
-import { useTranslations } from 'next-intl';
+import { useTranslation } from '@/hooks/use-translation';
 import { type MCPServer } from '@/types/mcp';
 import { mcpApi } from '@/lib/api/mcp';
 import { useToast } from '@/hooks/use-toast';
@@ -46,7 +46,7 @@ export function ElicitationDialog({
   open,
   onOpenChange,
 }: ElicitationDialogProps) {
-  const t = useTranslations('mcp');
+  const { t } = useTranslation();
   const { toast } = useToast();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
@@ -108,8 +108,8 @@ export function ElicitationDialog({
       setMessages(prev => [...prev, assistantMessage]);
     } catch (error) {
       toast({
-        title: t('elicitation.sendError'),
-        description: error instanceof Error ? error.message : t('elicitation.sendErrorDescription'),
+        title: t('mcp.elicitation.sendError'),
+        description: error instanceof Error ? error.message : t('mcp.elicitation.sendErrorDescription'),
         variant: 'destructive',
       });
     } finally {
@@ -131,8 +131,8 @@ export function ElicitationDialog({
       setTimeout(() => setCopied(null), 2000);
     } catch (error) {
       toast({
-        title: t('elicitation.copyError'),
-        description: t('elicitation.copyErrorDescription'),
+        title: t('mcp.elicitation.copyError'),
+        description: t('mcp.elicitation.copyErrorDescription'),
         variant: 'destructive',
       });
     }
@@ -152,16 +152,16 @@ export function ElicitationDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <MessageSquare className="h-5 w-5" />
-            {t('elicitation.title', { name: server.config.name })}
+            {t('mcp.elicitation.title', { name: server.config.name })}
           </DialogTitle>
           <DialogDescription>
-            {t('elicitation.description')}
+            {t('mcp.elicitation.description')}
           </DialogDescription>
         </DialogHeader>
 
         <div className="flex items-center justify-between py-2 border-b">
           <Badge variant="outline">
-            {t('elicitation.messages', { count: messages.length })}
+            {t('mcp.elicitation.messages', { count: messages.length })}
           </Badge>
           <Button
             size="sm"
@@ -169,7 +169,7 @@ export function ElicitationDialog({
             onClick={clearConversation}
             disabled={messages.length === 0}
           >
-            {t('elicitation.clearConversation')}
+            {t('mcp.elicitation.clearConversation')}
           </Button>
         </div>
 
@@ -177,8 +177,8 @@ export function ElicitationDialog({
           {messages.length === 0 ? (
             <div className="text-center text-gray-500 py-12">
               <MessageSquare className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-              <p>{t('elicitation.noMessages')}</p>
-              <p className="text-sm mt-2">{t('elicitation.startConversation')}</p>
+              <p>{t('mcp.elicitation.noMessages')}</p>
+              <p className="text-sm mt-2">{t('mcp.elicitation.startConversation')}</p>
             </div>
           ) : (
             <div className="space-y-4">
@@ -224,7 +224,7 @@ export function ElicitationDialog({
                       {message.tool_calls && message.tool_calls.length > 0 && (
                         <div className="mt-2 pt-2 border-t">
                           <div className="text-xs text-gray-500 mb-1">
-                            {t('elicitation.toolCalls')}:
+                            {t('mcp.elicitation.toolCalls')}:
                           </div>
                           <div className="space-y-1">
                             {message.tool_calls.map((call: any, index: number) => (
@@ -260,7 +260,7 @@ export function ElicitationDialog({
                       <div className="flex items-center gap-2">
                         <Loader2 className="h-4 w-4 animate-spin" />
                         <span className="text-sm text-gray-500">
-                          {t('elicitation.thinking')}
+                          {t('mcp.elicitation.thinking')}
                         </span>
                       </div>
                     </CardContent>
@@ -275,7 +275,7 @@ export function ElicitationDialog({
           <div className="flex gap-2">
             <Input
               ref={inputRef}
-              placeholder={t('elicitation.inputPlaceholder')}
+              placeholder={t('mcp.elicitation.inputPlaceholder')}
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyPress={handleKeyPress}
@@ -291,7 +291,7 @@ export function ElicitationDialog({
             </Button>
           </div>
           <p className="text-xs text-gray-500 mt-2">
-            {t('elicitation.hint')}
+            {t('mcp.elicitation.hint')}
           </p>
         </div>
       </DialogContent>

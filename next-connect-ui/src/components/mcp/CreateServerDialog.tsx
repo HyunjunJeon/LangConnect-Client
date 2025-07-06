@@ -35,7 +35,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Plus, X, Info } from 'lucide-react';
-import { useTranslations } from 'next-intl';
+import { useTranslation } from '@/hooks/use-translation';
 import { ServerTransport, type MCPServerConfig } from '@/types/mcp';
 import { mcpApi } from '@/lib/api/mcp';
 import { useToast } from '@/hooks/use-toast';
@@ -71,7 +71,7 @@ export function CreateServerDialog({
   onOpenChange,
   onServerCreated,
 }: CreateServerDialogProps) {
-  const t = useTranslations('mcp');
+  const { t } = useTranslation();
   const { toast } = useToast();
   const [creating, setCreating] = useState(false);
   const [envKey, setEnvKey] = useState('');
@@ -84,9 +84,9 @@ export function CreateServerDialog({
     defaultValues: {
       name: '',
       description: '',
-      transport: ServerTransport.SSE,
+      transport: ServerTransport.STREAMABLE_HTTP,
       image: 'langconnect-mcp:latest',
-      command: 'python -m mcp.mcp_langconnect_sse_server',
+      command: 'python -m mcp.mcp_langconnect_http_server',
       args: [],
       auth_required: true,
       elicitation: false,
@@ -122,16 +122,37 @@ export function CreateServerDialog({
       };
 
       const server = await mcpApi.createServer({ config });
-      onServerCreated(server);
-      toast({
-        title: t('server.createSuccess'),
-        description: t('server.createSuccessDescription', { name: server.config.name }),
-      });
+      
+      // Auto-start the server after creation
+      try {
+        const startedServer = await mcpApi.startServer(server.id);
+        onServerCreated(startedServer.server || server);
+        toast({
+          title: t('mcp.server.createAndStartSuccess'),
+          description: t('mcp.server.createAndStartSuccessDescription', { name: server.config.name }),
+        });
+      } catch (startError) {
+        // If auto-start fails, still show the server as created
+        onServerCreated(server);
+        toast({
+          title: t('mcp.server.createSuccess'),
+          description: t('mcp.server.createSuccessDescription', { name: server.config.name }),
+        });
+        // Show warning about start failure
+        setTimeout(() => {
+          toast({
+            title: t('mcp.server.autoStartError'),
+            description: t('mcp.server.autoStartErrorDescription'),
+            variant: 'destructive',
+          });
+        }, 100);
+      }
+      
       form.reset();
     } catch (error) {
       toast({
-        title: t('server.createError'),
-        description: error instanceof Error ? error.message : t('server.createErrorDescription'),
+        title: t('mcp.server.createError'),
+        description: error instanceof Error ? error.message : t('mcp.server.createErrorDescription'),
         variant: 'destructive',
       });
     } finally {
@@ -184,9 +205,9 @@ export function CreateServerDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{t('server.createTitle')}</DialogTitle>
+          <DialogTitle>{t('mcp.server.createTitle')}</DialogTitle>
           <DialogDescription>
-            {t('server.createDescription')}
+            {t('mcp.server.createDescription')}
           </DialogDescription>
         </DialogHeader>
 
@@ -194,10 +215,10 @@ export function CreateServerDialog({
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <Tabs defaultValue="basic" className="w-full">
               <TabsList className="grid w-full grid-cols-4">
-                <TabsTrigger value="basic">{t('server.basicTab')}</TabsTrigger>
-                <TabsTrigger value="runtime">{t('server.runtimeTab')}</TabsTrigger>
-                <TabsTrigger value="environment">{t('server.environmentTab')}</TabsTrigger>
-                <TabsTrigger value="advanced">{t('server.advancedTab')}</TabsTrigger>
+                <TabsTrigger value="basic">{t('mcp.server.basicTab')}</TabsTrigger>
+                <TabsTrigger value="runtime">{t('mcp.server.runtimeTab')}</TabsTrigger>
+                <TabsTrigger value="environment">{t('mcp.server.environmentTab')}</TabsTrigger>
+                <TabsTrigger value="advanced">{t('mcp.server.advancedTab')}</TabsTrigger>
               </TabsList>
 
               <TabsContent value="basic" className="space-y-4">
@@ -206,12 +227,12 @@ export function CreateServerDialog({
                   name="name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t('server.name')}</FormLabel>
+                      <FormLabel>{t('mcp.server.name')}</FormLabel>
                       <FormControl>
                         <Input placeholder="my-mcp-server" {...field} />
                       </FormControl>
                       <FormDescription>
-                        {t('server.nameDescription')}
+                        {t('mcp.server.nameDescription')}
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -223,10 +244,10 @@ export function CreateServerDialog({
                   name="description"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t('server.description')}</FormLabel>
+                      <FormLabel>{t('mcp.server.description')}</FormLabel>
                       <FormControl>
                         <Textarea 
-                          placeholder={t('server.descriptionPlaceholder')}
+                          placeholder={t('mcp.server.descriptionPlaceholder')}
                           {...field} 
                         />
                       </FormControl>
@@ -240,7 +261,7 @@ export function CreateServerDialog({
                   name="transport"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t('server.transport')}</FormLabel>
+                      <FormLabel>{t('mcp.server.transport')}</FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger>
@@ -248,16 +269,19 @@ export function CreateServerDialog({
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value={ServerTransport.SSE}>
-                            SSE (Server-Sent Events)
+                          <SelectItem value={ServerTransport.STREAMABLE_HTTP}>
+                            Streamable HTTP (Recommended)
                           </SelectItem>
                           <SelectItem value={ServerTransport.STDIO}>
                             STDIO (Standard I/O)
                           </SelectItem>
+                          <SelectItem value={ServerTransport.SSE} disabled>
+                            SSE (Deprecated)
+                          </SelectItem>
                         </SelectContent>
                       </Select>
                       <FormDescription>
-                        {t('server.transportDescription')}
+                        {t('mcp.server.transportDescription')}
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -269,7 +293,7 @@ export function CreateServerDialog({
                   name="port"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t('server.port')}</FormLabel>
+                      <FormLabel>{t('mcp.server.port')}</FormLabel>
                       <FormControl>
                         <Input 
                           type="number" 
@@ -279,7 +303,7 @@ export function CreateServerDialog({
                         />
                       </FormControl>
                       <FormDescription>
-                        {t('server.portDescription')}
+                        {t('mcp.server.portDescription')}
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -293,12 +317,12 @@ export function CreateServerDialog({
                   name="image"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t('server.dockerImage')}</FormLabel>
+                      <FormLabel>{t('mcp.server.dockerImage')}</FormLabel>
                       <FormControl>
                         <Input placeholder="langconnect-mcp:latest" {...field} />
                       </FormControl>
                       <FormDescription>
-                        {t('server.dockerImageDescription')}
+                        {t('mcp.server.dockerImageDescription')}
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -310,12 +334,12 @@ export function CreateServerDialog({
                   name="command"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t('server.command')}</FormLabel>
+                      <FormLabel>{t('mcp.server.command')}</FormLabel>
                       <FormControl>
                         <Input placeholder="python -m mcp.server" {...field} />
                       </FormControl>
                       <FormDescription>
-                        {t('server.commandDescription')}
+                        {t('mcp.server.commandDescription')}
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -323,11 +347,11 @@ export function CreateServerDialog({
                 />
 
                 <div>
-                  <FormLabel>{t('server.arguments')}</FormLabel>
+                  <FormLabel>{t('mcp.server.arguments')}</FormLabel>
                   <div className="space-y-2 mt-2">
                     <div className="flex gap-2">
                       <Input
-                        placeholder={t('server.argumentPlaceholder')}
+                        placeholder={t('mcp.server.argumentPlaceholder')}
                         value={argValue}
                         onChange={(e) => setArgValue(e.target.value)}
                         onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addArg())}
@@ -357,7 +381,7 @@ export function CreateServerDialog({
 
               <TabsContent value="environment" className="space-y-4">
                 <div>
-                  <FormLabel>{t('server.environmentVariables')}</FormLabel>
+                  <FormLabel>{t('mcp.server.environmentVariables')}</FormLabel>
                   <div className="space-y-2 mt-2">
                     <div className="flex gap-2">
                       <Input
@@ -398,12 +422,12 @@ export function CreateServerDialog({
                   name="resources.cpu_limit"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t('server.cpuLimit')}</FormLabel>
+                      <FormLabel>{t('mcp.server.cpuLimit')}</FormLabel>
                       <FormControl>
                         <Input placeholder="0.5" {...field} />
                       </FormControl>
                       <FormDescription>
-                        {t('server.cpuLimitDescription')}
+                        {t('mcp.server.cpuLimitDescription')}
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -415,12 +439,12 @@ export function CreateServerDialog({
                   name="resources.memory_limit"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t('server.memoryLimit')}</FormLabel>
+                      <FormLabel>{t('mcp.server.memoryLimit')}</FormLabel>
                       <FormControl>
                         <Input placeholder="512m" {...field} />
                       </FormControl>
                       <FormDescription>
-                        {t('server.memoryLimitDescription')}
+                        {t('mcp.server.memoryLimitDescription')}
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -435,9 +459,9 @@ export function CreateServerDialog({
                   render={({ field }) => (
                     <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
                       <div className="space-y-0.5">
-                        <FormLabel>{t('server.authRequired')}</FormLabel>
+                        <FormLabel>{t('mcp.server.authRequired')}</FormLabel>
                         <FormDescription>
-                          {t('server.authRequiredDescription')}
+                          {t('mcp.server.authRequiredDescription')}
                         </FormDescription>
                       </div>
                       <FormControl>
@@ -456,9 +480,9 @@ export function CreateServerDialog({
                   render={({ field }) => (
                     <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
                       <div className="space-y-0.5">
-                        <FormLabel>{t('server.elicitation')}</FormLabel>
+                        <FormLabel>{t('mcp.server.elicitation')}</FormLabel>
                         <FormDescription>
-                          {t('server.elicitationDescription')}
+                          {t('mcp.server.elicitationDescription')}
                         </FormDescription>
                       </div>
                       <FormControl>
@@ -472,11 +496,11 @@ export function CreateServerDialog({
                 />
 
                 <div>
-                  <FormLabel>{t('server.middleware')}</FormLabel>
+                  <FormLabel>{t('mcp.server.middleware')}</FormLabel>
                   <div className="space-y-2 mt-2">
                     <div className="flex gap-2">
                       <Input
-                        placeholder={t('server.middlewarePlaceholder')}
+                        placeholder={t('mcp.server.middlewarePlaceholder')}
                         value={middlewareValue}
                         onChange={(e) => setMiddlewareValue(e.target.value)}
                         onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addMiddleware())}
@@ -502,7 +526,7 @@ export function CreateServerDialog({
                     ))}
                   </div>
                   <FormDescription className="mt-2">
-                    {t('server.middlewareDescription')}
+                    {t('mcp.server.middlewareDescription')}
                   </FormDescription>
                 </div>
               </TabsContent>

@@ -26,8 +26,9 @@ class ServerTransport(str, Enum):
     """MCP Server transport types."""
 
     STDIO = "stdio"
-    SSE = "sse"
-    HTTP = "http"
+    SSE = "sse"  # Deprecated - use STREAMABLE_HTTP instead
+    STREAMABLE_HTTP = "streamable_http"
+    HTTP = "http"  # Alias for backward compatibility
 
 
 class MCPServerConfig(BaseModel):
@@ -36,7 +37,7 @@ class MCPServerConfig(BaseModel):
     name: str = Field(..., description="Unique server name")
     description: str = Field("", description="Server description")
     transport: ServerTransport = Field(
-        ServerTransport.SSE, description="Transport mechanism"
+        ServerTransport.STREAMABLE_HTTP, description="Transport mechanism"
     )
     port: int = Field(8765, ge=1024, le=65535, description="Server port")
     environment: dict[str, str] = Field(
@@ -72,7 +73,7 @@ class MCPServerCreate(BaseModel):
 
     name: str
     description: str = ""
-    transport: ServerTransport = ServerTransport.SSE
+    transport: ServerTransport = ServerTransport.STREAMABLE_HTTP
     port: Optional[int] = None  # Auto-assign if not provided
     environment: dict[str, str] = Field(default_factory=dict)
     docker_image: str = "langconnect-mcp:latest"

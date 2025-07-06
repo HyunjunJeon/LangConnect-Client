@@ -3,13 +3,14 @@
 .idea/
 .claude/
 .pnpm-store/
-CLAUDE.md
 
 # Development tools
 .cursor/
 
 # Project documentation and rules
 GEMINI.md
+CLAUDE.md
+claude_code_use_gemini_cli.md
 /rules/
 /docs/
 

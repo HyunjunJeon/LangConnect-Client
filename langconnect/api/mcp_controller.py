@@ -4,22 +4,20 @@ This module provides REST API endpoints for managing MCP servers,
 integrating Docker management, registry, and authentication services.
 """
 
-import asyncio
 import logging
-from typing import AsyncIterator, Optional
+from collections.abc import AsyncIterator
+from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
 from langconnect.api.auth import get_current_user
 from langconnect.models.mcp_server import (
-    ElicitationRequest,
     ElicitationResponse,
     MCPServer,
     MCPServerCreate,
     MCPServerList,
-    MCPServerLog,
     MCPServerStatus,
     MCPServerUpdate,
     ServerStatus,
@@ -94,11 +92,25 @@ async def create_server(
     current_user: dict = Depends(get_current_user),
     registry: MCPRegistry = Depends(get_mcp_registry),
     docker: DockerManager = Depends(get_docker_manager),
+    auth: AuthManager = Depends(get_auth_manager),
 ) -> MCPServer:
     """Create a new MCP server."""
     try:
         # Register server in database
         server = await registry.register_server(server_create, current_user["user_id"])
+
+        # Get auth token and set environment variables
+        token = await auth.get_token(current_user["user_id"])
+        if token:
+            server.config.environment["SUPABASE_JWT_SECRET"] = token
+        
+        # Add Supabase configuration from environment
+        from langconnect.config import SUPABASE_URL, SUPABASE_KEY, IS_TESTING
+        server.config.environment["SUPABASE_URL"] = SUPABASE_URL
+        server.config.environment["SUPABASE_KEY"] = SUPABASE_KEY
+        server.config.environment["IS_TESTING"] = "true" if IS_TESTING else "false"
+        # MCP server needs to connect back to the API
+        server.config.environment["API_BASE_URL"] = "http://api:8080"  # Internal Docker network
 
         # Create Docker container
         container_id, status = await docker.create_container(server.id, server.config)
@@ -226,6 +238,12 @@ async def start_server(
     if token:
         # Update server environment with fresh token
         server.config.environment["SUPABASE_JWT_SECRET"] = token
+    
+    # Add Supabase configuration from environment
+    from langconnect.config import SUPABASE_URL, SUPABASE_KEY, IS_TESTING
+    server.config.environment["SUPABASE_URL"] = SUPABASE_URL
+    server.config.environment["SUPABASE_KEY"] = SUPABASE_KEY
+    server.config.environment["IS_TESTING"] = "true" if IS_TESTING else "false"
 
     # Start container
     if not server.status.container_id:
@@ -317,6 +335,12 @@ async def restart_server(
     if token:
         # Update server environment with fresh token
         server.config.environment["SUPABASE_JWT_SECRET"] = token
+    
+    # Add Supabase configuration from environment
+    from langconnect.config import SUPABASE_URL, SUPABASE_KEY, IS_TESTING
+    server.config.environment["SUPABASE_URL"] = SUPABASE_URL
+    server.config.environment["SUPABASE_KEY"] = SUPABASE_KEY
+    server.config.environment["IS_TESTING"] = "true" if IS_TESTING else "false"
         # TODO: Update running container environment
 
     # Restart container

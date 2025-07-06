@@ -49,9 +49,12 @@ async def sign_up(request: SignUpRequest) -> AuthResponse:
         HTTPException: If sign up fails
     """
     if config.IS_TESTING:
-        raise HTTPException(
-            status_code=400,
-            detail="Authentication endpoints are disabled in testing mode",
+        # In testing mode, accept any credentials and return test tokens
+        return AuthResponse(
+            access_token="user1",  # This will be recognized by resolve_user
+            refresh_token="test_refresh_token",
+            user_id="user1",
+            email=request.email,
         )
 
     supabase = create_client(config.SUPABASE_URL, config.SUPABASE_KEY)
@@ -94,9 +97,12 @@ async def sign_in(request: SignInRequest) -> AuthResponse:
         HTTPException: If sign in fails
     """
     if config.IS_TESTING:
-        raise HTTPException(
-            status_code=400,
-            detail="Authentication endpoints are disabled in testing mode",
+        # In testing mode, accept any credentials and return test tokens
+        return AuthResponse(
+            access_token="user1",  # This will be recognized by resolve_user
+            refresh_token="test_refresh_token",
+            user_id="user1",
+            email=request.email,
         )
 
     supabase = create_client(config.SUPABASE_URL, config.SUPABASE_KEY)
