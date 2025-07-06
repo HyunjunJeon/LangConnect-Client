@@ -101,6 +101,7 @@ export const ko = {
     messages: {
       uploadSuccess: '문서가 성공적으로 업로드되었습니다',
       uploadError: '문서 업로드 실패',
+      uploadRequireFiles: '업로드할 파일을 선택하세요',
       deleteSuccess: '문서가 성공적으로 삭제되었습니다',
       deleteError: '문서 삭제 실패',
       fetchError: '문서 조회 실패'
@@ -127,7 +128,11 @@ export const ko = {
     alphaValue: '알파 값 (0-1)',
     noResults: '검색 결과가 없습니다',
     results: '검색 결과',
-    relevanceScore: '관련도: {{score}}'
+    relevanceScore: '관련도: {{score}}',
+    enterSearchQuery: '검색어를 입력하세요',
+    selectCollectionFirst: '컬렉션을 선택하세요',
+    invalidJson: '잘못된 JSON 형식입니다',
+    foundResults: '{{count}}개의 결과를 찾았습니다'
   },
   apiTester: {
     title: 'API 테스터',
@@ -160,7 +165,14 @@ export const ko = {
     alreadyHaveAccount: '이미 계정이 있으신가요?',
     dontHaveAccount: '계정이 없으신가요?',
     signInError: '로그인 실패',
+    signInProcessError: '로그인 처리 중 오류가 발생했습니다',
+    signInProcessing: '처리 중...',
+    signInSuccess: '로그인이 완료되었습니다',
+    signInInvalidCredentials: '이메일 또는 비밀번호가 올바르지 않습니다',
     signUpError: '회원가입 실패',
+    signUpSuccess: '회원가입이 완료되었습니다',
+    signUpEmailExists: '이미 가입된 이메일입니다',
+    unknownError: '알 수 없는 오류가 발생했습니다',
     logoutSuccess: '로그아웃되었습니다',
     emailVerification: {
       title: '이메일 확인 필요',
@@ -170,8 +182,6 @@ export const ko = {
       emailNotReceived: '이메일을 받지 못하셨나요? 스팸 폴더를 확인해 주세요.',
       goToLogin: '로그인 페이지로 이동'
     },
-    signUpSuccess: '회원가입이 완료되었습니다!',
-    emailAlreadyExists: '이미 가입된 이메일입니다',
     signUpProcessing: '처리 중...',
     signUpButton: '가입하기',
     signInDescription: '로그인 정보를 입력하세요',
